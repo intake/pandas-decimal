@@ -63,6 +63,8 @@ class DecimalExtensionArray(ExtensionArray, ExtensionScalarOpsMixin):
     @classmethod
     def _create_comparison_method(cls, op):
         def _binop(self, other):
+            if not hasattr(other, "dtype"):
+                other = np.asanyarray(other)
             if other.dtype.kind in ["i", "f"]:
                 other = cls(other * 10 ** self._dtype.decimal_places, dtype=self.dtype)
             elif other.dtype.kind == ".":
@@ -85,7 +87,6 @@ class DecimalExtensionArray(ExtensionArray, ExtensionScalarOpsMixin):
             if isinstance(other, (ABCSeries, ABCIndex, ABCDataFrame)):
                 # rely on pandas to unbox and dispatch to us
                 return NotImplemented
-
 
             if not hasattr(other, "dtype"):
                 other = np.asanyarray(other)
