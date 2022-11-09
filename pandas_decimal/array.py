@@ -17,8 +17,8 @@ from pandas_decimal.dtype import DecimaldDtype
 
 
 class DecimalExtensionArray(ExtensionArray, ExtensionScalarOpsMixin):
-    _dtype: DecimaldDtype
-    _data: np.Array
+    _dtype: DecimaldDtype  # .decimal_places gives precision as exponent of 10
+    _data: np.Array  # int64
 
     def __init__(self, data: Any, decimal_places=0, dtype=None) -> None:
 
@@ -137,7 +137,13 @@ class DecimalExtensionArray(ExtensionArray, ExtensionScalarOpsMixin):
 
     @classmethod
     def _concat_same_type(cls, to_concat):
-        return cls(np.concatenate([_._data for _ in to_concat]), dtype=self._dtype)
+        max_decimals = max(_._dtype.decimal_places for _ in to_concat)
+        return cls(
+            np.concatenate([
+                _._data * 10**(_._dtype.decimal_places - max_decimals) for _ in to_concat
+                ]),
+            dtype=DecimaldDtype(max_decimals)
+        )
 
     @property
     def ndim(self) -> Literal[1]:
