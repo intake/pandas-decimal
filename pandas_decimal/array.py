@@ -61,6 +61,25 @@ class DecimalExtensionArray(ExtensionArray, ExtensionScalarOpsMixin):
             yield self._data[i] / 10**self.dtype.decimal_places
 
     @classmethod
+    def _create_comparison_method(cls, op):
+        def _binop(self, other):
+            if other.dtype.kind in ["i", "f"]:
+                other = cls(other * 10 ** self._dtype.decimal_places, dtype=self.dtype)
+            elif other.dtype.kind == ".":
+                other = other
+            else:
+                raise ValueError
+
+            diff = self._dtype.decimal_places - other._dtype.decimal_places
+            if diff >= 0:
+                other = np.round(other._data * 10 ** diff).astype("int64")
+                return op(self._data, other)
+            else:
+                these = np.round(self._data / 10 ** diff).astype("int64")
+                return op(these, other._data)
+        return _binop
+
+    @classmethod
     def _create_method(cls, op, coerce_to_dtype=True, result_dtype=None):
         def _binop(self, other):
             if isinstance(other, (ABCSeries, ABCIndex, ABCDataFrame)):
@@ -74,7 +93,7 @@ class DecimalExtensionArray(ExtensionArray, ExtensionScalarOpsMixin):
                 if other.dtype.kind in ["i", "f"]:
                     other = cls(other * 10**self._dtype.decimal_places, dtype=self.dtype)
                 elif other.dtype.kind == ".":
-                    other = other.values
+                    other = other
                 else:
                     raise ValueError
 
@@ -87,7 +106,7 @@ class DecimalExtensionArray(ExtensionArray, ExtensionScalarOpsMixin):
                     return cls(op(these, other._data), dtype=other._dtype)
             elif "mul" in str(op) or "div" in str(op):
                 if other.dtype.kind == ".":
-                    other = other.values / 10**other._dtype.decimal_places
+                    other = other._data / 10**other._dtype.decimal_places
                 elif other.dtype.kind not in ["i", "f"]:
                     raise ValueError
                 return cls(op(self._data, other), dtype=self._dtype)
