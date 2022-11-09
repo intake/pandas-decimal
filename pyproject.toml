@@ -1,5 +1,5 @@
 [project]
-name = "daskberg"
+name = "pandas_decimal"
 description = "icy"
 readme = "README.md"
 license = {file="LICENCE"}
