@@ -124,16 +124,16 @@ class DecimalExtensionArray(ExtensionArray, ExtensionScalarOpsMixin):
                 diff = self._dtype.decimal_places - other._dtype.decimal_places
                 if diff >= 0:
                     other = np.round(other._data * 10**diff).astype("int64")
-                    return cls(op(self._data, other), dtype=self._dtype)
+                    return cls.from_internal(op(self._data, other), dtype=self._dtype)
                 else:
                     these = np.round(self._data / 10**diff).astype("int64")
-                    return cls(op(these, other._data), dtype=other._dtype)
+                    return cls.from_internal(op(these, other._data), dtype=other._dtype)
             elif "mul" in str(op) or "div" in str(op):
                 if other.dtype.kind == ".":
                     other = other._data / 10**other._dtype.decimal_places
                 elif other.dtype.kind not in ["i", "f"]:
                     raise ValueError
-                return cls(op(self._data, other), dtype=self._dtype)
+                return cls.from_internal(op(self._data, other), dtype=self._dtype)
 
         op_name = f"__{op.__name__}__"
         return set_function_name(_binop, op_name, cls)
