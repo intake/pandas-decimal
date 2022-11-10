@@ -21,17 +21,36 @@ class DecimalExtensionArray(ExtensionArray, ExtensionScalarOpsMixin):
     _data: np.Array  # int64
 
     def __init__(self, data: Any, decimal_places=0, dtype=None) -> None:
+        """
 
-        self._dtype = dtype or DecimaldDtype(decimal_places)
+        Parameters
+        ----------
+        data: array-like
+            Starting values
+        decimal_places: int
+            Number of decimal places of accuracy.  Ignored if ``dtype`` given
+        dtype: DecimaldDtype instance
+            If given, use this exact dtype.
+        """
+        if dtype:
+            if dtype.kind != ".":
+                raise ValueError("dtype of DecimalExtensionArray must be "
+                                 "a DecimalExtensionArray")
+            decimal_places = dtype.decimal_places
+            self._dtype = dtype
+        else:
+            self._dtype = DecimaldDtype(decimal_places)
         if not hasattr(data, "dtype"):
             data = np.array(data)
         data = np.atleast_1d(data)
-        if data.dtype.kind == "i":
-            self._data = data.astype("int64")
-        elif data.dtype.kind == "f":
-            self._data = np.round(data * 10**decimal_places).astype("int64")
-        else:
-            raise ValueError
+        self._data = np.round(data * 10**decimal_places).astype("int64")
+
+    @classmethod
+    def from_internal(cls, data, dtype):
+        """Construct extension array where data is already in correct int form"""
+        arr = cls([], dtype=dtype)
+        arr._data = data
+        return arr
 
     @classmethod
     def _from_sequence(cls, scalars, *, decimal_places=0, dtype=None, copy=False):
@@ -45,7 +64,7 @@ class DecimalExtensionArray(ExtensionArray, ExtensionScalarOpsMixin):
 
     @classmethod
     def _from_factorized(cls, values, original):
-        return cls(values, dtype=original.dtype)
+        return cls.from_internal(values, original.dtype)
 
     def __getitem__(self, item):
         return self._data[item] / 10**self.dtype.decimal_places
@@ -59,6 +78,10 @@ class DecimalExtensionArray(ExtensionArray, ExtensionScalarOpsMixin):
     def __iter__(self):
         for i in range(len(self)):
             yield self._data[i] / 10**self.dtype.decimal_places
+
+    def _formatter(self, boxed: bool = False) -> Callable[[Any], str | None]:
+        st = "{" + f":.{self._dtype.decimal_places}f" + "}"
+        return lambda x: st.format(x)
 
     @classmethod
     def _create_comparison_method(cls, op):
