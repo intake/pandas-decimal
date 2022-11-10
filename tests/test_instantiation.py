@@ -14,4 +14,4 @@ def test_bad_instantiation_detects():
 
 def test_type_of_individual_elements():
     x = pd.Series([1,2,3], dtype=f'decimal[0]')
-    assert all([isinstance(t, int)] for t in x)
+    assert all([isinstance(t, int) for t in x])
