@@ -1,7 +1,6 @@
 import pytest
 
 import pandas as pd
-import pandas_decimal
 
 
 @pytest.mark.parametrize("test_input,expected", [('', '[0]'), ('[0]', '[0]'), ('[1]', '[1]'),('[3]', '[3]')])
@@ -11,7 +10,7 @@ def test_instantiation_works_looking_at_type(test_input, expected):
 
 
 def test_bad_instantiation_detects():
-    with pytest.raises(ValueError):
+    with pytest.raises(TypeError):
         x = pd.Series([1,2,3], dtype=f'decimal[-1]')
 
 
