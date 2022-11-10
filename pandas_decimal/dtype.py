@@ -75,6 +75,7 @@ class DecimaldDtype(ExtensionDtype):
             return cls()
         out = re.match(cls._match, string)
         if not out:
+            #TODO: This should be more informative. Of why the check failed or at least have the string that caused failure.
             raise ValueError
         return cls(int(out.groups()[0]))
 
