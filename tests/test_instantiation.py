@@ -11,7 +11,7 @@ def test_instantiation_works_looking_at_type(test_input, expected):
 
 def test_bad_instantiation_detects():
     with pytest.raises(TypeError):
-        x = pd.Series([1,2,3], dtype=f'decimal[-1]')
+        x = pd.Series([1, 2, 3], dtype=f'decimal[-1]')
 
 
 def test_type_of_individual_elements():
