@@ -67,7 +67,7 @@ class DecimalExtensionArray(ExtensionArray, ExtensionScalarOpsMixin):
         return cls.from_internal(values, original.dtype)
 
     def __getitem__(self, item):
-        return self._data[item] / 10**self.dtype.decimal_places
+        return self._data[item] * 10 ** -self._dtype.decimal_places
 
     def __setitem__(self, key, value):
         self._data[key] = np.round(value * 10**self.dtype.decimal_places).astype("int64")
@@ -77,7 +77,7 @@ class DecimalExtensionArray(ExtensionArray, ExtensionScalarOpsMixin):
 
     def __iter__(self):
         for i in range(len(self)):
-            yield self._data[i] / 10**self.dtype.decimal_places
+            yield self._data[i] * 10 ** -self._dtype.decimal_places
 
     def _formatter(self, boxed: bool = False) -> Callable[[Any], str | None]:
         st = "{" + f":.{self._dtype.decimal_places}f" + "}"
@@ -100,7 +100,7 @@ class DecimalExtensionArray(ExtensionArray, ExtensionScalarOpsMixin):
                 other = np.round(other._data * 10 ** diff).astype("int64")
                 return op(self._data, other)
             else:
-                these = np.round(self._data / 10 ** diff).astype("int64")
+                these = np.round(self._data * 10 ** -diff).astype("int64")
                 return op(these, other._data)
         return _binop
 
@@ -126,11 +126,11 @@ class DecimalExtensionArray(ExtensionArray, ExtensionScalarOpsMixin):
                     other = np.round(other._data * 10**diff).astype("int64")
                     return cls(op(self._data, other), dtype=self._dtype)
                 else:
-                    these = np.round(self._data / 10**diff).astype("int64")
+                    these = np.round(self._data * 10**-diff).astype("int64")
                     return cls(op(these, other._data), dtype=other._dtype)
             elif "mul" in str(op) or "div" in str(op):
                 if other.dtype.kind == ".":
-                    other = other._data / 10**other._dtype.decimal_places
+                    other = other._data * 10**-other._dtype.decimal_places
                 elif other.dtype.kind not in ["i", "f"]:
                     raise ValueError
                 return cls(op(self._data, other), dtype=self._dtype)
@@ -177,31 +177,41 @@ class DecimalExtensionArray(ExtensionArray, ExtensionScalarOpsMixin):
         return self._data.shape
 
     def __array__(self, dtype=None) -> np.NDArray:
-        return np.asarray(self._data / 10**self.dtype.decimal_places, dtype=dtype)
+        return np.asarray(self._data * 10**-self.dtype.decimal_places, dtype=dtype)
 
     def __arrow_array__(self):
         raise NotImplementedError
 
     def tolist(self) -> list:
-        return (self._data / 10**self.dtype.decimal_places).tolist()
+        return (self._data * 10**-self.dtype.decimal_places).tolist()
 
     def __array_ufunc__(self, *inputs, **kwargs):
         return type(self)(self._data.__array_ufunc__(*inputs, **kwargs), dtype=self._dtype)
 
     def max(self, **kwargs):
-        return self._data.max(**kwargs) / 10**self.dtype.decimal_places
+        kwargs.pop("min_count")
+        kwargs.pop("skipna")
+        return self._data.max(**kwargs) * 10**-self.dtype.decimal_places
 
     def min(self, **kwargs):
-        return self._data.min(**kwargs) / 10**self.dtype.decimal_places
+        kwargs.pop("min_count")
+        kwargs.pop("skipna")
+        return self._data.min(**kwargs) * 10**-self.dtype.decimal_places
 
     def mean(self, **kwargs):
-        return self._data.mean(**kwargs) / 10**self.dtype.decimal_places
+        kwargs.pop("min_count")
+        kwargs.pop("skipna")
+        return self._data.mean(**kwargs) * 10**-self.dtype.decimal_places
 
     def std(self, **kwargs):
-        return self._data.std(**kwargs) / 10**self.dtype.decimal_places
+        kwargs.pop("min_count")
+        kwargs.pop("skipna")
+        return self._data.std(**kwargs) * 10**-self.dtype.decimal_places
 
     def sum(self, **kwargs):
-        return self._data.sum(**kwargs) / 10**self.dtype.decimal_places
+        kwargs.pop("min_count")
+        kwargs.pop("skipna")
+        return self._data.sum(**kwargs) * 10**-self.dtype.decimal_places
 
 
 DecimalExtensionArray._add_arithmetic_ops()
