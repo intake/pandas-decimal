@@ -79,7 +79,7 @@ class DecimalExtensionArray(ExtensionArray, ExtensionScalarOpsMixin):
         for i in range(len(self)):
             yield self._data[i] / 10 ** self._dtype.decimal_places
 
-    def _formatter(self, boxed: bool = False) -> Callable[[Any], str | None]:
+    def _formatter(self, boxed: bool = False):
         st = "{" + f":.{self._dtype.decimal_places}f" + "}"
         return lambda x: st.format(x)
 
@@ -89,12 +89,11 @@ class DecimalExtensionArray(ExtensionArray, ExtensionScalarOpsMixin):
             if not hasattr(other, "dtype"):
                 other = np.asanyarray(other)
             if other.dtype.kind in ["i", "f"]:
-                other = cls(other * 10 ** self._dtype.decimal_places, dtype=self.dtype)
+                other = cls.from_internal(other * 10 ** self._dtype.decimal_places, dtype=self.dtype)
             elif other.dtype.kind == ".":
                 other = other
             else:
                 raise ValueError
-
             diff = self._dtype.decimal_places - other._dtype.decimal_places
             if diff >= 0:
                 other = np.round(other._data * 10 ** diff).astype("int64")
