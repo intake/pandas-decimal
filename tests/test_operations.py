@@ -4,7 +4,7 @@ import numpy as np
 import pandas as pd
 
 @pytest.mark.parametrize("degree", [0,1,2,3])
-def test_adding_of_same_degree_works(degree):
+def test_adding_of_same_degree_works_by_item(degree):
     dtype_str = f'decimal[{degree}]'
     original = [0,1,2,3]
     expected = [x+y for x,y in zip(original, original)]
@@ -17,7 +17,7 @@ def test_adding_of_same_degree_works(degree):
     assert all([i == j for i, j in zip(expected, z)])
 
 @pytest.mark.parametrize("degree", [0,1,2,3])
-def test_adding_of_same_degree_works2(degree):
+def test_adding_of_same_degree_works_by_vector(degree):
     dtype_str = f'decimal[{degree}]'
     original = [0,1,2,3]
     expected = [x+y for x,y in zip(original, original)]
