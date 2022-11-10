@@ -19,7 +19,14 @@ def test_type_of_individual_elements():
     assert all([t.dtype.kind == "f" for t in x])  # these are np scalars
 
 @pytest.mark.parametrize("test_input", ['[0]', '[1]', '[3]'])
-def test_values_are_correct(test_input):
+def test_instantiation_values_are_correct_and_not_morphed(test_input):
     original = [1,2,3]
     series = pd.Series(original, dtype=f'decimal{test_input}')
     assert all(np.isclose(x, y) for x, y in zip(original, series))
+
+@pytest.mark.parametrize("test_degree", [0,1,2,3])
+def test_instantiation_values_are_correct_and_internally_correct(test_degree):
+    original = [1,2,3]
+    factor = int(10 ** test_degree)
+    series = pd.Series(original, dtype=f'decimal[{test_degree}]')
+    assert all(x*factor == y for x, y in zip(original, series.values._data))
