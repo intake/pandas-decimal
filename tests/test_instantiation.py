@@ -16,7 +16,7 @@ def test_bad_instantiation_detects():
 
 def test_type_of_individual_elements():
     x = pd.Series([1,2,3], dtype=f'decimal[0]')
-    assert all([t.dtype.kind == "i" for t in x])  # these are np scalars
+    assert all([t.dtype.kind == "f" for t in x])  # these are np scalars
 
 @pytest.mark.parametrize("test_input", ['[0]', '[1]', '[3]'])
 def test_values_are_correct(test_input):
