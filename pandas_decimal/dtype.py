@@ -1,9 +1,8 @@
 from __future__ import annotations
+
 import decimal
-
 import re
-
-from typing import TYPE_CHECKING, Any
+from typing import Any
 
 import numpy as np
 from pandas.core.dtypes.base import ExtensionDtype, register_extension_dtype
@@ -88,6 +87,7 @@ class DecimaldDtype(ExtensionDtype):
 
     def __from_arrow__(self, data: Any):
         from pandas_decimal.array import DecimalExtensionArray
+
         raise NotImplementedError
         return DecimalExtensionArray
 
