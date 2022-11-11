@@ -2,10 +2,7 @@ import numpy as np
 import pandas as pd
 import pytest
 
-import pandas_decimal
 
-
-### Vector and Vector on Ints ####
 @pytest.fixture
 def sample_int_list():
     return np.arange(-2, 5).tolist()
@@ -20,7 +17,9 @@ def make_sample_decimal_series(sample_int_list):
 
 
 @pytest.mark.parametrize("degree", [0, 1, 2, 3])
-def test_adding_of_same_degree_works_by_item(degree, sample_int_list, make_sample_decimal_series):
+def test_adding_of_same_degree_works_by_item(
+    degree, sample_int_list, make_sample_decimal_series
+):
     expected = [x + y for x, y in zip(sample_int_list, sample_int_list)]
     x = make_sample_decimal_series(degree)
     y = make_sample_decimal_series(degree)
@@ -32,7 +31,9 @@ def test_adding_of_same_degree_works_by_item(degree, sample_int_list, make_sampl
 
 
 @pytest.mark.parametrize("degree", [0, 1, 2, 3])
-def test_adding_of_same_degree_works_by_vector(degree, sample_int_list, make_sample_decimal_series):
+def test_adding_of_same_degree_works_by_vector(
+    degree, sample_int_list, make_sample_decimal_series
+):
     expected = [x + y for x, y in zip(sample_int_list, sample_int_list)]
     x = make_sample_decimal_series(degree)
     y = make_sample_decimal_series(degree)
@@ -44,7 +45,9 @@ def test_adding_of_same_degree_works_by_vector(degree, sample_int_list, make_sam
 
 
 @pytest.mark.parametrize("delta_degree", [-1, 1, 2, 3])
-def test_adding_of_different_degree_works_by_item(delta_degree, sample_int_list, make_sample_decimal_series):
+def test_adding_of_different_degree_works_by_item(
+    delta_degree, sample_int_list, make_sample_decimal_series
+):
     degree = 1
     other_degree = degree + delta_degree
     expected = [x + y for x, y in zip(sample_int_list, sample_int_list)]
@@ -58,7 +61,9 @@ def test_adding_of_different_degree_works_by_item(delta_degree, sample_int_list,
 
 
 @pytest.mark.parametrize("delta_degree", [-1, 1, 2, 3])
-def test_adding_of_different_degree_works_by_vector(delta_degree, sample_int_list, make_sample_decimal_series):
+def test_adding_of_different_degree_works_by_vector(
+    delta_degree, sample_int_list, make_sample_decimal_series
+):
     degree = 1
     other_degree = degree + delta_degree
     expected = [x + y for x, y in zip(sample_int_list, sample_int_list)]
@@ -70,10 +75,15 @@ def test_adding_of_different_degree_works_by_vector(delta_degree, sample_int_lis
     # Test values are correct
     assert np.all(expected == z)
 
+
 @pytest.mark.parametrize("degree", [0, 1, 2, 3])
-def test_int_scalar_addition_to_decimal_series(degree, sample_int_list, make_sample_decimal_series):
+def test_int_scalar_addition_to_decimal_series(
+    degree, sample_int_list, make_sample_decimal_series
+):
     sample_num = 2
-    expected = [x + y for x, y in zip(sample_int_list, [sample_num]*len(sample_int_list))]
+    expected = [
+        x + y for x, y in zip(sample_int_list, [sample_num] * len(sample_int_list))
+    ]
     x = make_sample_decimal_series(degree)
     z = x + sample_num
     # Test degree didn't change
@@ -81,11 +91,13 @@ def test_int_scalar_addition_to_decimal_series(degree, sample_int_list, make_sam
     assert all([i == j for i, j in zip(expected, z)])
     assert np.all(expected == z)
 
-@pytest.mark.xfail
+
 @pytest.mark.parametrize("degree", [1, 2, 3])
-def test_float_scalar_addition_to_decimal_series(degree, sample_int_list, make_sample_decimal_series):
+def test_float_scalar_addition_to_decimal_series(
+    degree, sample_int_list, make_sample_decimal_series
+):
     sample_num = 1.2
-    expected = [x + y for x, y in zip(sample_int_list, [sample_num]*len(sample_int_list))]
+    expected = [-0.8, 0.2, 1.2, 2.2, 3.2, 4.2, 5.2]
     x = make_sample_decimal_series(degree)
     z = x + sample_num
     # Test degree didn't change
