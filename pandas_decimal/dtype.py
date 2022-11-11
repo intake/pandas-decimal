@@ -1,9 +1,8 @@
 from __future__ import annotations
+
 import decimal
-
 import re
-
-from typing import TYPE_CHECKING, Any
+from typing import Any
 
 import numpy as np
 from pandas.core.dtypes.base import ExtensionDtype, register_extension_dtype
@@ -27,6 +26,8 @@ class DecimaldDtype(ExtensionDtype):
         return type(self), (self.decimal_places,)
 
     def __eq__(self, other):
+        if isinstance(other, str):
+            other = self.construct_from_string(other)
         return other.kind == "." and other.decimal_places == self.decimal_places
 
     @property
@@ -51,7 +52,7 @@ class DecimaldDtype(ExtensionDtype):
 
     @property
     def _is_boolean(self) -> bool:
-        return True
+        return False
 
     @classmethod
     def construct_from_string(cls, string: str) -> DecimaldDtype:
@@ -86,6 +87,7 @@ class DecimaldDtype(ExtensionDtype):
 
     def __from_arrow__(self, data: Any):
         from pandas_decimal.array import DecimalExtensionArray
+
         raise NotImplementedError
         return DecimalExtensionArray
 

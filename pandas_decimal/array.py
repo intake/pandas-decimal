@@ -1,15 +1,12 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Any, Literal
+from typing import Any, Literal
 
 import numpy as np
 from pandas.core.arrays.base import (
     ExtensionArray,
     ExtensionScalarOpsMixin,
     set_function_name,
-)
-from pandas.core.dtypes.base import (
-    register_extension_dtype,
 )
 from pandas.core.dtypes.generic import ABCDataFrame, ABCIndex, ABCSeries
 
@@ -34,8 +31,9 @@ class DecimalExtensionArray(ExtensionArray, ExtensionScalarOpsMixin):
         """
         if dtype:
             if dtype.kind != ".":
-                raise ValueError("dtype of DecimalExtensionArray must be "
-                                 "a DecimalExtensionArray")
+                raise ValueError(
+                    "dtype of DecimalExtensionArray must be " "a DecimalExtensionArray"
+                )
             decimal_places = dtype.decimal_places
             self._dtype = dtype
         else:
@@ -67,17 +65,22 @@ class DecimalExtensionArray(ExtensionArray, ExtensionScalarOpsMixin):
         return cls.from_internal(values, original.dtype)
 
     def __getitem__(self, item):
-        return self._data[item] / 10 ** self._dtype.decimal_places
+        return self._data[item] / 10**self._dtype.decimal_places
 
     def __setitem__(self, key, value):
-        self._data[key] = np.round(value * 10**self.dtype.decimal_places).astype("int64")
+        self._data[key] = np.round(value * 10**self.dtype.decimal_places).astype(
+            "int64"
+        )
 
     def __len__(self) -> int:
         return len(self._data)
 
     def __iter__(self):
         for i in range(len(self)):
-            yield self._data[i] / 10 ** self._dtype.decimal_places
+            yield self._data[i] / 10**self._dtype.decimal_places
+
+    def __neg__(self):
+        return type(self).from_internal(-self._data, self._dtype)
 
     def _formatter(self, boxed: bool = False):
         st = "{" + f":.{self._dtype.decimal_places}f" + "}"
@@ -89,18 +92,21 @@ class DecimalExtensionArray(ExtensionArray, ExtensionScalarOpsMixin):
             if not hasattr(other, "dtype"):
                 other = np.asanyarray(other)
             if other.dtype.kind in ["i", "f"]:
-                other = cls.from_internal(other * 10 ** self._dtype.decimal_places, dtype=self.dtype)
+                other = cls.from_internal(
+                    other * 10**self._dtype.decimal_places, dtype=self.dtype
+                )
             elif other.dtype.kind == ".":
                 other = other
             else:
                 raise ValueError
             diff = self._dtype.decimal_places - other._dtype.decimal_places
             if diff >= 0:
-                other = np.round(other._data * 10 ** diff).astype("int64")
+                other = np.round(other._data * 10**diff).astype("int64")
                 return op(self._data, other)
             else:
-                these = np.round(self._data * 10 ** -diff).astype("int64")
+                these = np.round(self._data * 10**-diff).astype("int64")
                 return op(these, other._data)
+
         return _binop
 
     @classmethod
@@ -114,7 +120,10 @@ class DecimalExtensionArray(ExtensionArray, ExtensionScalarOpsMixin):
                 other = np.asanyarray(other)
             if "add" in str(op) or "sub" in str(op):
                 if other.dtype.kind in ["i", "f"]:
-                    other = cls(other * 10**self._dtype.decimal_places, dtype=self.dtype)
+                    other = cls.from_internal(
+                        (other * 10**self._dtype.decimal_places).astype("int64"),
+                        dtype=self.dtype,
+                    )
                 elif other.dtype.kind == ".":
                     other = other
                 else:
@@ -127,17 +136,33 @@ class DecimalExtensionArray(ExtensionArray, ExtensionScalarOpsMixin):
                 else:
                     these = np.round(self._data / 10**diff).astype("int64")
                     return cls.from_internal(op(these, other._data), dtype=other._dtype)
+            elif "floordiv" in str(op):
+                if other.dtype.kind == ".":
+                    other = other._data / 10**other._dtype.decimal_places
+                elif other.dtype.kind not in ["i", "f"]:
+                    raise ValueError
+                return (
+                    op(self._data, other) / 10**self._dtype.decimal_places
+                ).astype("int64")
+
+            elif str(op) in ["__mod__", "__rmod__"]:
+                # TODO: this cares if other is int or not
+                raise NotImplementedError
             elif "mul" in str(op) or "div" in str(op):
                 if other.dtype.kind == ".":
                     other = other._data / 10**other._dtype.decimal_places
                 elif other.dtype.kind not in ["i", "f"]:
                     raise ValueError
                 return cls.from_internal(op(self._data, other), dtype=self._dtype)
+            elif "pow" in str(op):
+                dt = DecimaldDtype(decimal_places=self._dtype.decimal_places * other)
+                return cls.from_internal(op(self._data, other), dtype=dt)
+            raise NotImplementedError
 
         op_name = f"__{op.__name__}__"
         return set_function_name(_binop, op_name, cls)
 
-    #def _reduce(self, name: str, *, skipna: bool = True, axis=None, **kwargs):
+    # def _reduce(self, name: str, *, skipna: bool = True, axis=None, **kwargs):
     #    return getattr(ak, name)(self._data, **kwargs)
 
     @property
@@ -161,10 +186,13 @@ class DecimalExtensionArray(ExtensionArray, ExtensionScalarOpsMixin):
     def _concat_same_type(cls, to_concat):
         max_decimals = max(_._dtype.decimal_places for _ in to_concat)
         return cls(
-            np.concatenate([
-                _._data * 10**(_._dtype.decimal_places - max_decimals) for _ in to_concat
-                ]),
-            dtype=DecimaldDtype(max_decimals)
+            np.concatenate(
+                [
+                    _._data * 10 ** (_._dtype.decimal_places - max_decimals)
+                    for _ in to_concat
+                ]
+            ),
+            dtype=DecimaldDtype(max_decimals),
         )
 
     @property
@@ -185,7 +213,9 @@ class DecimalExtensionArray(ExtensionArray, ExtensionScalarOpsMixin):
         return (self._data / 10**self.dtype.decimal_places).tolist()
 
     def __array_ufunc__(self, *inputs, **kwargs):
-        return type(self)(self._data.__array_ufunc__(*inputs, **kwargs), dtype=self._dtype)
+        return type(self)(
+            self._data.__array_ufunc__(*inputs, **kwargs), dtype=self._dtype
+        )
 
     def max(self, **kwargs):
         kwargs.pop("min_count")
