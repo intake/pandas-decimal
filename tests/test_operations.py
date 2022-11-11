@@ -2,63 +2,71 @@ import numpy as np
 import pandas as pd
 import pytest
 
+import pandas_decimal
+
+
+### Vector and Vector on Ints ####
+@pytest.fixture
+def sample_int_list():
+    return np.arange(5).tolist()
+
+
+@pytest.fixture
+def make_sample_decimal_series(sample_int_list):
+    def _make_sample_decimal_vector(degree, ):
+        return pd.Series(sample_int_list, dtype=f"decimal[{degree}]")
+
+    return _make_sample_decimal_vector
+
 
 @pytest.mark.parametrize("degree", [0, 1, 2, 3])
-def test_adding_of_same_degree_works(degree):
-    dtype_str = f"decimal[{degree}]"
-    original = [0, 1, 2, 3]
-    expected = [x + y for x, y in zip(original, original)]
-    x = pd.Series(original, dtype=dtype_str)
-    y = pd.Series(original, dtype=dtype_str)
+def test_adding_of_same_degree_works_by_item(degree, sample_int_list, make_sample_decimal_series):
+    expected = [x + y for x, y in zip(sample_int_list, sample_int_list)]
+    x = make_sample_decimal_series(degree)
+    y = make_sample_decimal_series(degree)
     z = x + y
     # Test degree didn't change
-    assert str(x.dtype) == dtype_str
+    assert str(z.dtype) == f"decimal[{degree}]"
     # Test values are correct
     assert all([i == j for i, j in zip(expected, z)])
 
 
 @pytest.mark.parametrize("degree", [0, 1, 2, 3])
-def test_adding_of_same_degree_works2(degree):
-    dtype_str = f"decimal[{degree}]"
-    original = [0, 1, 2, 3]
-    expected = [x + y for x, y in zip(original, original)]
-    x = pd.Series(original, dtype=dtype_str)
-    y = pd.Series(original, dtype=dtype_str)
+def test_adding_of_same_degree_works_by_vector(degree, sample_int_list, make_sample_decimal_series):
+    expected = [x + y for x, y in zip(sample_int_list, sample_int_list)]
+    x = make_sample_decimal_series(degree)
+    y = make_sample_decimal_series(degree)
     z = x + y
     # Test degree didn't change
-    assert str(x.dtype) == dtype_str
+    assert str(z.dtype) == f"decimal[{degree}]"
     # Test values are correct
     assert np.all(expected == z)
 
 
-@pytest.mark.parametrize("delta_degree", [1, 2, 3])
-def test_adding_of_different_degree_works(delta_degree):
-    degree = 0
-    # other_degree = degree + delta_degree
-    dtype_str = f"decimal[{degree}]"
-    original = [0, 1, 2, 3]
-    expected = [x + y for x, y in zip(original, original)]
-    x = pd.Series(original, dtype=dtype_str)
-    y = pd.Series(original, dtype=dtype_str)
+@pytest.mark.parametrize("delta_degree", [-1, 1, 2, 3])
+def test_adding_of_different_degree_works_by_item(delta_degree, sample_int_list, make_sample_decimal_series):
+    degree = 1
+    other_degree = degree + delta_degree
+    expected = [x + y for x, y in zip(sample_int_list, sample_int_list)]
+    x = make_sample_decimal_series(degree)
+    y = make_sample_decimal_series(other_degree)
     z = x + y
     # Test degree didn't change
-    assert str(x.dtype) == dtype_str
+    assert str(z.dtype) == f"decimal[{max(degree, other_degree)}]"
     # Test values are correct
-    assert all([np.isclose(x, y) for x, y in zip(expected, z)])
+    assert all([i == j for i, j in zip(expected, z)])
 
 
-@pytest.mark.parametrize("delta_degree", [1, 2, 3])
-def test_adding_of_different_degree_works2(delta_degree):
-    degree = 0
-    # other_degree = degree + delta_degree
-    dtype_str = f"decimal[{degree}]"
-    original = [0, 1, 2, 3]
-    expected = [x + y for x, y in zip(original, original)]
-    x = pd.Series(original, dtype=dtype_str)
-    y = pd.Series(original, dtype=dtype_str)
+@pytest.mark.parametrize("delta_degree", [-1, 1, 2, 3])
+def test_adding_of_different_degree_works_by_vector(delta_degree, sample_int_list, make_sample_decimal_series):
+    degree = 1
+    other_degree = degree + delta_degree
+    expected = [x + y for x, y in zip(sample_int_list, sample_int_list)]
+    x = make_sample_decimal_series(degree)
+    y = make_sample_decimal_series(other_degree)
     z = x + y
     # Test degree didn't change
-    assert str(x.dtype) == dtype_str
+    assert str(z.dtype) == f"decimal[{max(degree, other_degree)}]"
     # Test values are correct
     assert np.all(expected == z)
 
