@@ -79,6 +79,9 @@ class DecimalExtensionArray(ExtensionArray, ExtensionScalarOpsMixin):
         for i in range(len(self)):
             yield self._data[i] / 10 ** self._dtype.decimal_places
 
+    def __neg__(self):
+        return type(self).from_internal(-self._data, self._dtype)
+
     def _formatter(self, boxed: bool = False):
         st = "{" + f":.{self._dtype.decimal_places}f" + "}"
         return lambda x: st.format(x)
@@ -114,7 +117,10 @@ class DecimalExtensionArray(ExtensionArray, ExtensionScalarOpsMixin):
                 other = np.asanyarray(other)
             if "add" in str(op) or "sub" in str(op):
                 if other.dtype.kind in ["i", "f"]:
-                    other = cls(other * 10**self._dtype.decimal_places, dtype=self.dtype)
+                    other = cls.from_internal(
+                        (other * 10**self._dtype.decimal_places).astype('int64'),
+                        dtype=self.dtype
+                    )
                 elif other.dtype.kind == ".":
                     other = other
                 else:
@@ -127,12 +133,26 @@ class DecimalExtensionArray(ExtensionArray, ExtensionScalarOpsMixin):
                 else:
                     these = np.round(self._data / 10**diff).astype("int64")
                     return cls.from_internal(op(these, other._data), dtype=other._dtype)
+            elif "floordiv" in str(op):
+                if other.dtype.kind == ".":
+                    other = other._data / 10**other._dtype.decimal_places
+                elif other.dtype.kind not in ["i", "f"]:
+                    raise ValueError
+                return (op(self._data, other) / 10**self._dtype.decimal_places).astype("int64")
+
+            elif str(op) in ["__mod__", "__rmod__"]:
+                # TODO: this cares if other is int or not
+                raise NotImplementedError
             elif "mul" in str(op) or "div" in str(op):
                 if other.dtype.kind == ".":
                     other = other._data / 10**other._dtype.decimal_places
                 elif other.dtype.kind not in ["i", "f"]:
                     raise ValueError
                 return cls.from_internal(op(self._data, other), dtype=self._dtype)
+            elif "pow" in str(op):
+                dt = DecimaldDtype(decimal_places=self._dtype.decimal_places*other)
+                return cls.from_internal(op(self._data, other), dtype=dt)
+            raise NotImplementedError
 
         op_name = f"__{op.__name__}__"
         return set_function_name(_binop, op_name, cls)

@@ -27,6 +27,8 @@ class DecimaldDtype(ExtensionDtype):
         return type(self), (self.decimal_places,)
 
     def __eq__(self, other):
+        if isinstance(other, str):
+            other = self.construct_from_string(other)
         return other.kind == "." and other.decimal_places == self.decimal_places
 
     @property
@@ -51,7 +53,7 @@ class DecimaldDtype(ExtensionDtype):
 
     @property
     def _is_boolean(self) -> bool:
-        return True
+        return False
 
     @classmethod
     def construct_from_string(cls, string: str) -> DecimaldDtype:

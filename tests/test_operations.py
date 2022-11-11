@@ -28,7 +28,8 @@ def test_adding_of_same_degree_works2(degree):
     assert str(x.dtype) == dtype_str
     # Test values are correct
     assert np.all(expected == z)
-"""
+
+
 @pytest.mark.parametrize("delta_degree", [1,2,3])
 def test_adding_of_different_degree_works(delta_degree):
     degree = 0
@@ -43,6 +44,7 @@ def test_adding_of_different_degree_works(delta_degree):
     assert str(x.dtype) == dtype_str
     # Test values are correct
     assert all([np.isclose(x, y) for x, y in zip(expected, z)])
+
 
 @pytest.mark.parametrize("delta_degree", [1,2,3])
 def test_adding_of_different_degree_works2(delta_degree):
@@ -59,4 +61,15 @@ def test_adding_of_different_degree_works2(delta_degree):
     # Test values are correct
     assert np.all(expected == z)
 
-"""
+
+def test_neg():
+    s = pd.Series([.1, 2, 3], dtype="decimal[1]")
+    assert (-s).tolist() == [-_ for _ in s.tolist()]
+
+
+def test_pow():
+    s = pd.Series([1, 2, 3], dtype="decimal[1]")
+    s2 = s**2
+    assert (s2 == s * s).all()
+    assert s2.dtype == "decimal[2]"
+
