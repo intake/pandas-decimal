@@ -1,5 +1,7 @@
 .idea
-
+.coverage
+.ipynb*
+*.ipynb
 
 *.egg-info
 __pycache__
