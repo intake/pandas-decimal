@@ -218,28 +218,28 @@ class DecimalExtensionArray(ExtensionArray, ExtensionScalarOpsMixin):
         )
 
     def max(self, **kwargs):
-        kwargs.pop("min_count")
-        kwargs.pop("skipna")
+        kwargs.pop("min_count", None)
+        kwargs.pop("skipna", None)
         return self._data.max(**kwargs) / 10**self.dtype.decimal_places
 
     def min(self, **kwargs):
-        kwargs.pop("min_count")
-        kwargs.pop("skipna")
+        kwargs.pop("min_count", None)
+        kwargs.pop("skipna", None)
         return self._data.min(**kwargs) / 10**self.dtype.decimal_places
 
     def mean(self, **kwargs):
-        kwargs.pop("min_count")
-        kwargs.pop("skipna")
+        kwargs.pop("min_count", None)
+        kwargs.pop("skipna", None)
         return self._data.mean(**kwargs) / 10**self.dtype.decimal_places
 
     def std(self, **kwargs):
-        kwargs.pop("min_count")
-        kwargs.pop("skipna")
+        kwargs.pop("min_count", None)
+        kwargs.pop("skipna", None)
         return self._data.std(**kwargs) / 10**self.dtype.decimal_places
 
     def sum(self, **kwargs):
-        kwargs.pop("min_count")
-        kwargs.pop("skipna")
+        kwargs.pop("min_count", None)
+        kwargs.pop("skipna", None)
         return self._data.sum(**kwargs) / 10**self.dtype.decimal_places
 
 
