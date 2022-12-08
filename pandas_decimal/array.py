@@ -180,9 +180,7 @@ class DecimalExtensionArray(ExtensionArray, ExtensionScalarOpsMixin):
         return self[indices]
 
     def copy(self):
-        return type(self)(
-            np.copy(self._data / 10**self.dtype.decimal_places), dtype=self._dtype
-        )
+        return type(self).from_internal(np.copy(self._data), dtype=self._dtype)
 
     @classmethod
     def _concat_same_type(cls, to_concat):
