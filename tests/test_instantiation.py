@@ -35,18 +35,21 @@ def test_instantiation_int_values_are_correct_and_internally_correct(test_degree
     series = pd.Series(original, dtype=f"decimal[{test_degree}]")
     assert all(x * factor == y for x, y in zip(original, series.values._data))
 
+
 @pytest.mark.parametrize("test_degree", [1, 2, 3])
 def test_instantiation_float_values_are_correct_and_not_morphed(test_degree):
-    original = [.1, .2, .3]
+    original = [0.1, 0.2, 0.3]
     series = pd.Series(original, dtype=f"decimal[{test_degree}]")
     assert all(np.isclose(x, y) for x, y in zip(original, series))
 
 
 @pytest.mark.parametrize("test_degree", [1, 2, 3])
 def test_instantiation_float_values_are_correct_and_internally_correct(test_degree):
-    original = [.1, .2, .3]
+    original = [0.1, 0.2, 0.3]
     factor = int(10**test_degree)
     series = pd.Series(original, dtype=f"decimal[{test_degree}]")
     assert all(x * factor == y for x, y in zip(original, series.values._data))
 
-# TODO: Make tests that test what to do when decimals are truncated and their correct behavior
+
+# TODO: Make tests that test what to do when decimals are truncated
+# and their correct behavior
