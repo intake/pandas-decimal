@@ -10,5 +10,5 @@ quirks.
 ### Install
 
 ```bash
-pip install git+//github.com/intake/pandas-decimal
+pip install pandas-decimal
 ```
